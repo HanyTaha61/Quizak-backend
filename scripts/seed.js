@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Quiz from "../api/models/quiz.model.js";
 
-dotenv.config();
+dotenv.config({ path: "../.env" });
 
 const seed = async () => {
   await mongoose.connect(process.env.MONGO_URI);
