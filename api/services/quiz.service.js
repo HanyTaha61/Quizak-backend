@@ -95,7 +95,6 @@ class QuizService {
     if (!result) {
       return { key: topAnswer }
     }
-
     return {
       key: result.key,
       title: result.title,
