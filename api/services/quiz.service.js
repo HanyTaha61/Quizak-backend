@@ -70,8 +70,8 @@ class QuizService {
     if (exists) {
       throw new Error("Slug already exists");
     }
-
-    const quiz = await Quiz.create(payload);
+    
+const quiz = await Quiz.create(payload);
 
     return quiz;
   }

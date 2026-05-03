@@ -12,23 +12,28 @@ import Quiz from "../models/quiz.model.js"
  */
 class QuizController {
 
-  static async getAllQuizzes(req, res) {
-    try {
-      const quizzes = await Quiz.find().select("title slug image description shares createdAt");
+static async getAllQuizzes(req, res) {
+  try {
+    const quizzes = await Quiz.find({ })
+      .sort({ createdAt: -1 })
+      .select("title slug image description shares createdAt")
+      .lean();
 
-      return res.status(200).json({
-        quizzes,
-        stats: {
-          users: 15230 // mock أو من DB
-        }
-      });
+    return res.status(200).json({
+      success: true,
+      data: quizzes,
+      stats: {
+        users: 15230
+      }
+    });
 
-    } catch (err) {
-      return res.status(500).json({
-        message: err.message
-      });
-    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
+}
 
   /**
    * GET /api/quizzes/:slug
@@ -56,13 +61,28 @@ static async createQuiz(req, res) {
   try {
     const quiz = await QuizService.createQuiz(req.body);
 
+    const safeQuiz = {
+      id: quiz._id,
+      title: quiz.title,
+      description: quiz.description,
+      image: quiz.image,
+      slug: quiz.slug,
+      questions: quiz.questions,
+      results: quiz.results,
+      shares: quiz.shares,
+      isTrending: quiz.isTrending,
+      isPublished: quiz.isPublished,
+      createdAt: quiz.createdAt
+    };
+
     res.status(201).json({
       success: true,
-      data: quiz
+      data: safeQuiz
     });
 
   } catch (err) {
     res.status(400).json({
+      success: false,
       message: err.message
     });
   }
