@@ -7,7 +7,16 @@ const router = express.Router();
  * ⚠️ Rule:
  * Routes = pure mapping layer
  * No logic. No DB. No calculations.
- */
+*/
+
+// // 📌 Trending feed
+// router.get("/trending/list", QuizController.getTrending);
+
+// 📌 Get all quizzes
+router.get("/", QuizController.getAllQuizzes);
+
+// 📌create new quiz (by admin only)
+router.post("/", QuizController.createQuiz);
 
 // 📌 Get quiz by slug (frontend main entry)
 router.get("/:slug", QuizController.getQuizBySlug);
@@ -15,8 +24,6 @@ router.get("/:slug", QuizController.getQuizBySlug);
 // 📌 Submit quiz result
 router.post("/:id/submit", QuizController.submitResult);
 
-// 📌 Trending feed
-router.get("/trending/list", QuizController.getTrending);
 
 // 📌 Share tracking (viral loop)
 router.post("/:id/share", QuizController.incrementShare);

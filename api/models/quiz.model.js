@@ -40,37 +40,15 @@ const quizSchema = new mongoose.Schema(
 
     results: [
       {
+        key: { type: String, required: true },
         title: String,
         description: String,
-        image: String,
-
-        // scoring logic (viral logic)
-        minScore: Number,
-        maxScore: Number,
-      },
+        image: String
+      }
     ],
-
-    category: {
-      type: String,
-      default: "general",
-      index: true,
-    },
-
-    tags: [String],
-
-    // 🔥 viral metrics (important)
-    plays: {
-      type: Number,
-      default: 0,
-    },
 
     shares: {
       type: Number,
-      default: 0,
-    },
-
-    avgCompletionTime: {
-      type: Number, // seconds
       default: 0,
     },
 
@@ -90,7 +68,7 @@ const quizSchema = new mongoose.Schema(
 );
 
 // 🔥 index for viral discovery
-quizSchema.index({ plays: -1, shares: -1 });
-quizSchema.index({ category: 1, isTrending: -1 });
+quizSchema.index({ shares: -1 });
+quizSchema.index({ isTrending: -1 });
 
 export default mongoose.model("Quiz", quizSchema);

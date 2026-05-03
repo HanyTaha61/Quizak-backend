@@ -14,7 +14,4 @@ router.post("/submit", ResultController.submitResult);
 // 📌 Get all results for a quiz
 router.get("/:quizId", ResultController.getResultsByQuiz);
 
-// 📌 Get analytics/stats for a quiz
-router.get("/:quizId/stats", ResultController.getResultStats);
-
 export default router;

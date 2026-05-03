@@ -8,6 +8,74 @@ import Result from "../models/result.model.js";
 
 class QuizService {
 
+  /* 🔹 CREATE QUIZ */
+  static async createQuiz(payload) {
+
+    const { title, slug, questions, results } = payload;
+
+    // 🔥 Basic validation
+    if (!title || !slug) {
+      throw new Error("Title and slug are required");
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error("Quiz must have at least one question");
+    }
+
+    if (!Array.isArray(results) || results.length === 0) {
+      throw new Error("Quiz must have results");
+    }
+
+    // 🔥 Ensure result keys are unique
+    const keys = results.map(r => r.key);
+    const uniqueKeys = new Set(keys);
+
+    if (keys.length !== uniqueKeys.size) {
+      throw new Error("Result keys must be unique");
+    }
+
+    // 🔥 Validate that each option maps to a valid result key
+    questions.forEach((q, qi) => {
+      if (!q.text) {
+        throw new Error(`Question missing at index ${qi}`);
+      }
+
+      if (!Array.isArray(q.options) || q.options.length < 2) {
+        throw new Error(`Question ${qi} must have at least 2 options`);
+      }
+
+      q.options.forEach((opt, oi) => {
+        if (!opt.text) {
+          throw new Error(`Option text missing at Q${qi} O${oi}`);
+        }
+
+        if (!opt.value) {
+          throw new Error(`Option at Q${qi} O${oi} has no result mapping`);
+        }
+
+        if (!keys.includes(opt.value)) {
+          throw new Error(
+            `Option value "${opt.value}" not mapped to any result key`
+          );
+        }
+
+        if (!opt.value) {
+          throw new Error(`Option at Q${qi} O${oi} has no result mapping`);
+        }
+      });
+    });
+
+    // 🔥 Prevent duplicate slug
+    const exists = await Quiz.findOne({ slug });
+    if (exists) {
+      throw new Error("Slug already exists");
+    }
+
+    const quiz = await Quiz.create(payload);
+
+    return quiz;
+  }
+
   // simple resolver based on most common answer (can be enhanced with ML later)
   static resolveResult(quiz, answers) {
     const countMap = {}
@@ -24,17 +92,23 @@ class QuizService {
     // match result from DB
     const result = quiz.results.find(r => r.key === topAnswer)
 
+    if (!result) {
+      return { key: topAnswer }
+    }
+
     return {
-      key: topAnswer,
-      ...result
+      key: result.key,
+      title: result.title,
+      description: result.description,
+      image: result.image
     }
   }
 
   /**
    * Save result + trigger analytics updates
    */
-  static async submitResult({ quizId, answers, timeSpent }) {
-    const quiz = await Quiz.findOne({ slug: quizId }) // ✅ fix
+  static async submitResult({ quizId, answers }) {
+    const quiz = await Quiz.findOne({ slug: quizId })
 
     if (!quiz) throw new Error("Quiz not found")
 
@@ -46,17 +120,12 @@ class QuizService {
       resultKey: resolved.key,
       resultTitle: resolved.title,
       resultDescription: resolved.description,
-      resultImage: resolved.image,
-      timeSpent
+      resultImage: resolved.image
     })
 
     return resolved
   }
 
-  /**
-   * 🔥 VIRAL SCORING ALGORITHM
-   * هنا السر الحقيقي
-   */
   static async updateTrendingScore(quizId) {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) return;
@@ -104,7 +173,7 @@ class QuizService {
    */
   static async getTrendingQuizzes(limit = 10) {
     return Quiz.find({ isPublished: true })
-      .sort({ plays: -1, shares: -1 })
+      .sort({ shares: -1 })
       .limit(limit);
   }
 

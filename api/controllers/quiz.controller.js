@@ -1,4 +1,5 @@
 import QuizService from "../services/quiz.service.js";
+import Quiz from "../models/quiz.model.js"
 
 /**
  * ⚠️ Controller rule:
@@ -6,7 +7,29 @@ import QuizService from "../services/quiz.service.js";
  * Only request orchestration + response shaping.
  */
 
+/**
+ * GET /api/quizzes
+ */
 class QuizController {
+
+  static async getAllQuizzes(req, res) {
+    try {
+      const quizzes = await Quiz.find().select("title slug image description shares createdAt");
+
+      return res.status(200).json({
+        quizzes,
+        stats: {
+          users: 15230 // mock أو من DB
+        }
+      });
+
+    } catch (err) {
+      return res.status(500).json({
+        message: err.message
+      });
+    }
+  }
+
   /**
    * GET /api/quizzes/:slug
    */
@@ -28,9 +51,26 @@ class QuizController {
     }
   }
 
-   /**
-   * POST /api/quizzes/:id/submit
-   */
+  // POST /api/quizzes
+static async createQuiz(req, res) {
+  try {
+    const quiz = await QuizService.createQuiz(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: quiz
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      message: err.message
+    });
+  }
+}
+
+  /**
+  * POST /api/quizzes/:id/submit
+  */
   static async submitResult(req, res) {
     try {
       const {
